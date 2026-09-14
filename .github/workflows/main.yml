@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
@@ -18,33 +19,38 @@ jobs:
           distribution:  zulu 
           java-version:  17 
 
-      - name: Setup Flutter SDK
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version:  3.24.3 
+          flutter-version:  3.22.2 
           channel:  stable 
 
-      - name: Rebuild Fresh Android Skeleton
+      - name: Build Project from Scratch
         run: |
-          mkdir temp_build
-          cd temp_build
-          flutter create --org com.example ultimate_media_player
-          rm -rf ../android
-          cp -r ultimate_media_player/android ../
-          cd ..
-          rm -rf temp_build
-          # رفع مستوى SDK ليطابق المتطلبات
-          sed -i  s/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 35/  android/app/build.gradle || true
-          sed -i  s/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 35/  android/app/build.gradle || true
+          # 1. إنشاء مشروع فلاتر كامل ونظيف بمكتبات أندرويد الأصلية
+          flutter create --org com.example ultimate_app
+          cd ultimate_app
 
-      - name: Get Dependencies
-        run: flutter pub get
+          # 2. إضافة الأذونات المطلوبة لأندرويد (إنترنت وتخزين)
+          sed -i  /<application/i \    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>  android/app/src/main/AndroidManifest.xml
 
-      - name: Build APK Release
-        run: flutter build apk --release --no-tree-shake-icons
+          # 3. ضبط الحد الأدنى للـ SDK إلى 21 لتشغيل الفيديو بدون أخطاء
+          sed -i  s/minSdkVersion .*/minSdkVersion 21/  android/app/build.gradle
+
+          # 4. نسخ ملفات التطبيق والمكتبات الخاصة بك إلى المشروع النظيف
+          cp ../lib/main.dart lib/main.dart
+          cp ../pubspec.yaml pubspec.yaml
+
+          # 5. تحميل الحزم والبناء
+          flutter pub get
+          flutter build apk --release --no-tree-shake-icons
+
+          # 6. نقل ملف الـ APK النهائي للخارج ليتم رفعه
+          mkdir -p ../build_output
+          cp build/app/outputs/flutter-apk/app-release.apk ../build_output/
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Ultimate-Media-App
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build_output/app-release.apk
