@@ -10,29 +10,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: '17'
+          distribution:  zulu 
+          java-version:  17 
 
-      - name: Setup Flutter
+      - name: Setup Stable Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.3'
-          channel: 'stable'
+          flutter-version:  3.19.6 
+          channel:  stable 
 
-      - name: Build Project
+      - name: Force Build APK
         run: |
           flutter create --org com.example ultimate_app
           cp lib/main.dart ultimate_app/lib/main.dart
           cp pubspec.yaml ultimate_app/pubspec.yaml
           cd ultimate_app
+          
+          # استبدال المتغيرات بأرقام صريحة إجبارية داخل ملف التطبيق
+          sed -i  s/flutter.compileSdkVersion/34/g  android/app/build.gradle
+          sed -i  s/flutter.minSdkVersion/21/g  android/app/build.gradle
+          sed -i  s/flutter.targetSdkVersion/34/g  android/app/build.gradle
+          
+          # فرض الإصدار 34 بالقوة على جميع المكتبات الخارجية التي تسبب الخطأ
+          echo "subprojects { afterEvaluate { project -> if (project.hasProperty( android )) { project.android { compileSdkVersion 34 } } } }" >> android/build.gradle
+          
           flutter pub get
           flutter build apk --release --no-tree-shake-icons
+          
           mkdir -p ../output
           cp build/app/outputs/flutter-apk/app-release.apk ../output/
 
