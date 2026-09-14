@@ -21,23 +21,27 @@ jobs:
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version:  3.24.0 
+          flutter-version:  3.24.3 
           channel:  stable 
 
-      - name: Create Base Project Skeleton
+      - name: Rebuild Fresh Android Skeleton
         run: |
-          mkdir temp_app
-          cd temp_app
+          mkdir temp_build
+          cd temp_build
           flutter create --org com.example ultimate_media_player
+          rm -rf ../android
           cp -r ultimate_media_player/android ../
           cd ..
-          rm -rf temp_app
+          rm -rf temp_build
+          # رفع مستوى SDK ليطابق المتطلبات
+          sed -i  s/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 35/  android/app/build.gradle || true
+          sed -i  s/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 35/  android/app/build.gradle || true
 
       - name: Get Dependencies
         run: flutter pub get
 
       - name: Build APK Release
-        run: flutter build apk --release
+        run: flutter build apk --release --no-tree-shake-icons
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
