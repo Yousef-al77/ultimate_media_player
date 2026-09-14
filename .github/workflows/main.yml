@@ -25,18 +25,15 @@ jobs:
           flutter-version: '3.24.3'
           channel: 'stable'
 
-      - name: Build Project from Scratch
+      - name: Build Project
         run: |
-          # 1. إنشاء مشروع نظيف بأحدث بيئة
           flutter create ultimate_app
-          
-          # 2. نقل ملف الكود الأساسي الخاص بك
           cp lib/main.dart ultimate_app/lib/main.dart
           
-          # 3. كتابة ملف المكتبات الصحيح والمتوافق تلقائياً من هنا
+          # إنشاء ملف المكتبات النظيف بدون السطر الخاطئ
           cat << 'EOF' > ultimate_app/pubspec.yaml
           name: ultimate_app
-          description: A complete media player and downloader application.
+          description: A complete media player.
           publish_to: 'none'
           version: 1.0.0+1
           environment:
@@ -56,24 +53,24 @@ jobs:
             dio: ^5.4.3+1
             youtube_explode_dart: ^2.2.1
             http: ^1.2.1
-          dependency_overrides:
-            package_info_plus: ^9.0.3
           flutter:
             uses-material-design: true
           EOF
           
           cd ultimate_app
           
-          # 4. ترقية إعدادات الأندرويد للإصدارات الحديثة
-          sed -i 's/flutter.compileSdkVersion/35/g' android/app/build.gradle
-          sed -i 's/flutter.targetSdkVersion/35/g' android/app/build.gradle
-          sed -i 's/flutter.minSdkVersion/21/g' android/app/build.gradle
+          # تثبيت أرقام الأندرويد لكي لا تعترض مكتبات الفيديو (آمن 100%)
+          echo "flutter.minSdkVersion=21" >> android/local.properties
+          echo "flutter.compileSdkVersion=34" >> android/local.properties
+          echo "flutter.targetSdkVersion=34" >> android/local.properties
           
-          # 5. تنزيل الحزم وتجميع ملف الـ APK النهائي
+          sed -i 's/flutter.minSdkVersion/21/g' android/app/build.gradle || true
+          sed -i 's/flutter.compileSdkVersion/34/g' android/app/build.gradle || true
+          sed -i 's/flutter.targetSdkVersion/34/g' android/app/build.gradle || true
+
           flutter pub get
           flutter build apk --release --no-tree-shake-icons
           
-          # 6. تجهيز التطبيق للتحميل
           mkdir -p ../output
           cp build/app/outputs/flutter-apk/app-release.apk ../output/
 
