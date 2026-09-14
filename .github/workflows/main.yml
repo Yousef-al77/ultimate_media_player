@@ -19,30 +19,32 @@ jobs:
           distribution:  zulu 
           java-version:  17 
 
-      - name: Setup Stable Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version:  3.19.6 
           channel:  stable 
 
-      - name: Force Build APK
+      - name: Build and Package
         run: |
-          flutter create --org com.example ultimate_app
+          # 1. إنشاء مشروع نظيف
+          flutter create ultimate_app
+          
+          # 2. نقل ملفاتك إليه
           cp lib/main.dart ultimate_app/lib/main.dart
           cp pubspec.yaml ultimate_app/pubspec.yaml
           cd ultimate_app
           
-          # استبدال المتغيرات بأرقام صريحة إجبارية داخل ملف التطبيق
-          sed -i  s/flutter.compileSdkVersion/34/g  android/app/build.gradle
-          sed -i  s/flutter.minSdkVersion/21/g  android/app/build.gradle
-          sed -i  s/flutter.targetSdkVersion/34/g  android/app/build.gradle
+          # 3. الطريقة الرسمية والآمنة لتحديد إصدارات الأندرويد بدون العبث في أكواد Gradle نهائياً
+          echo "flutter.minSdkVersion=21" >> android/local.properties
+          echo "flutter.compileSdkVersion=34" >> android/local.properties
+          echo "flutter.targetSdkVersion=34" >> android/local.properties
           
-          # فرض الإصدار 34 بالقوة على جميع المكتبات الخارجية التي تسبب الخطأ
-          echo "subprojects { afterEvaluate { project -> if (project.hasProperty( android )) { project.android { compileSdkVersion 34 } } } }" >> android/build.gradle
-          
+          # 4. جلب المكتبات وتجميع التطبيق
           flutter pub get
           flutter build apk --release --no-tree-shake-icons
           
+          # 5. استخراج الـ APK النهائي
           mkdir -p ../output
           cp build/app/outputs/flutter-apk/app-release.apk ../output/
 
