@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java JDK
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution:  zulu 
@@ -25,32 +25,19 @@ jobs:
           flutter-version:  3.22.2 
           channel:  stable 
 
-      - name: Build Project from Scratch
+      - name: Build Project
         run: |
-          # 1. إنشاء مشروع فلاتر كامل ونظيف بمكتبات أندرويد الأصلية
           flutter create --org com.example ultimate_app
+          cp lib/main.dart ultimate_app/lib/main.dart
+          cp pubspec.yaml ultimate_app/pubspec.yaml
           cd ultimate_app
-
-          # 2. إضافة الأذونات المطلوبة لأندرويد (إنترنت وتخزين)
-          sed -i  /<application/i \    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>  android/app/src/main/AndroidManifest.xml
-
-          # 3. ضبط الحد الأدنى للـ SDK إلى 21 لتشغيل الفيديو بدون أخطاء
-          sed -i  s/minSdkVersion .*/minSdkVersion 21/  android/app/build.gradle
-
-          # 4. نسخ ملفات التطبيق والمكتبات الخاصة بك إلى المشروع النظيف
-          cp ../lib/main.dart lib/main.dart
-          cp ../pubspec.yaml pubspec.yaml
-
-          # 5. تحميل الحزم والبناء
           flutter pub get
           flutter build apk --release --no-tree-shake-icons
-
-          # 6. نقل ملف الـ APK النهائي للخارج ليتم رفعه
-          mkdir -p ../build_output
-          cp build/app/outputs/flutter-apk/app-release.apk ../build_output/
+          mkdir -p ../output
+          cp build/app/outputs/flutter-apk/app-release.apk ../output/
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Ultimate-Media-App
-          path: build_output/app-release.apk
+          path: output/app-release.apk
