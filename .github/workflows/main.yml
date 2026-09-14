@@ -29,7 +29,6 @@ jobs:
           mkdir temp_app
           cd temp_app
           flutter create --org com.example ultimate_media_player
-          sed -i  s|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.3-all.zip|  ultimate_media_player/android/gradle/wrapper/gradle-wrapper.properties
           cp -r ultimate_media_player/android ../
           cd ..
           rm -rf temp_app
