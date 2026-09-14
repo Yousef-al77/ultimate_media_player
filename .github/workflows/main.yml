@@ -30,7 +30,7 @@ jobs:
           flutter create ultimate_app
           cp lib/main.dart ultimate_app/lib/main.dart
           
-          # إنشاء ملف المكتبات النظيف بدون السطر الخاطئ
+          # استخدام كلمة any لترك النظام يحل التعارض تلقائياً ويجلب النسخ المتوافقة 100%
           cat << 'EOF' > ultimate_app/pubspec.yaml
           name: ultimate_app
           description: A complete media player.
@@ -41,25 +41,24 @@ jobs:
           dependencies:
             flutter:
               sdk: flutter
-            media_kit: ^1.1.11
-            media_kit_video: ^1.2.4
-            media_kit_libs_android_video: ^1.3.8
-            just_audio: ^0.9.36
-            screen_brightness: ^0.2.2+1
-            volume_controller: ^3.4.4
-            file_picker: ^8.0.0
-            path_provider: ^2.1.3
-            permission_handler: ^11.3.1
-            dio: ^5.4.3+1
-            youtube_explode_dart: ^2.2.1
-            http: ^1.2.1
+            media_kit: any
+            media_kit_video: any
+            media_kit_libs_android_video: any
+            just_audio: any
+            screen_brightness: any
+            volume_controller: any
+            file_picker: any
+            path_provider: any
+            permission_handler: any
+            dio: any
+            youtube_explode_dart: any
+            http: any
           flutter:
             uses-material-design: true
           EOF
           
           cd ultimate_app
           
-          # تثبيت أرقام الأندرويد لكي لا تعترض مكتبات الفيديو (آمن 100%)
           echo "flutter.minSdkVersion=21" >> android/local.properties
           echo "flutter.compileSdkVersion=34" >> android/local.properties
           echo "flutter.targetSdkVersion=34" >> android/local.properties
