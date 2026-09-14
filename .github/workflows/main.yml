@@ -26,7 +26,7 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Create Flutter Project
+      - name: Create Android Project
         run: |
           flutter create \
             --org com.yousefal77 \
@@ -35,6 +35,109 @@ jobs:
 
           cp lib/main.dart ultimate_app/lib/main.dart
 
+      - name: Configure Project
+        working-directory: ultimate_app
+        run: |
+          cat > pubspec.yaml <<'EOF'
+          name: ultimate_app
+          description: A complete media player and downloader application.
+          publish_to: 'none'
+          version: 1.0.0+1
+
+          environment:
+            sdk: ">=3.10.0 <4.0.0"
+            flutter: ">=3.38.0"
+
+          dependencies:
+            flutter:
+              sdk: flutter
+
+            media_kit: ^1.2.6
+            media_kit_video: ^2.0.1
+            media_kit_libs_android_video: ^1.3.8
+
+            screen_brightness: ^2.1.11
+            volume_controller: ^3.4.4
+
+            file_picker: ^11.0.3
+            path_provider: ^2.1.6
+            dio: ^5.11.1
+
+            youtube_explode_dart: ^3.1.0
+
+          flutter:
+            uses-material-design: true
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("android/app/build.gradle")
+          text = path.read_text()
+
+          text = text.replace(
+              "compileSdk = flutter.compileSdkVersion",
+              "compileSdk = 35"
+          )
+
+          text = text.replace(
+              "compileSdk flutter.compileSdkVersion",
+              "compileSdk 35"
+          )
+
+          text = text.replace(
+              "minSdk = flutter.minSdkVersion",
+              "minSdk = 24"
+          )
+
+          text = text.replace(
+              "minSdk flutter.minSdkVersion",
+              "minSdk 24"
+          )
+
+          text = text.replace(
+              "targetSdk = flutter.targetSdkVersion",
+              "targetSdk = 35"
+          )
+
+          text = text.replace(
+              "targetSdk flutter.targetSdkVersion",
+              "targetSdk 35"
+          )
+
+          path.write_text(text)
+          PY
+
+          echo "===== Android build.gradle ====="
+          cat android/app/build.gradle
+
+      - name: Get Dependencies
+        working-directory: ultimate_app
+        run: |
+          flutter clean
+          flutter pub get
+
+      - name: Analyze Dart
+        working-directory: ultimate_app
+        run: |
+          flutter analyze
+
+      - name: Build APK
+        working-directory: ultimate_app
+        run: |
+          flutter build apk --release --no-tree-shake-icons
+
+      - name: Prepare APK
+        run: |
+          mkdir -p output
+          cp ultimate_app/build/app/outputs/flutter-apk/app-release.apk \
+             output/Ultimate-Media-Player.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ultimate-Media-App
+          path: output/Ultimate-Media-Player.apk
       - name: Configure Dependencies
         working-directory: ultimate_app
         run: |
