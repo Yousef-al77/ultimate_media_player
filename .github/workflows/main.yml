@@ -24,6 +24,15 @@ jobs:
           flutter-version:  3.24.0 
           channel:  stable 
 
+      - name: Create Base Project Skeleton
+        run: |
+          mkdir temp_app
+          cd temp_app
+          flutter create --org com.example ultimate_media_player
+          cp -r ultimate_media_player/android ../
+          cd ..
+          rm -rf temp_app
+
       - name: Get Dependencies
         run: flutter pub get
 
